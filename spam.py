@@ -1,10 +1,11 @@
+import pickle
 import os
 from os import listdir
 from os.path import isfile, join
 from math import log, exp
 
 DEBUG = False
-
+DATA_FILE_NAME = 'backup.txt'
 
 class Probabilities:
     def __init__(self, labels=None, counts=None):
@@ -144,6 +145,11 @@ class SpamProbabilities:
 
         for word in words:
             self.prob_ham.add_occurence(word)
+    
+    def save(self):
+        with open(DATA_FILE_NAME, 'wb') as f:
+            pickle.dump(self, f)
+        
 
 
 def get_filenames_in_directory(dir_name):
@@ -221,7 +227,20 @@ HAM_DIR_TEST = 'nonspam-test'
 SPAM_DIR_TRAIN = 'spam-train'
 HAM_DIR_TRAIN = 'nonspam-train'
 
+
+def get_spam_prob():
+    if isfile(DATA_FILE_NAME):
+        print("Loaded from file")
+        f = open(DATA_FILE_NAME, 'rb')
+        s = pickle.load(f)
+        f.close()
+    else:
+        s = SpamProbabilities()
+        train(s, SPAM_DIR_TRAIN, HAM_DIR_TRAIN)
+    return s
+
 if __name__ == '__main__':
-    s = SpamProbabilities()
-    train(s, SPAM_DIR_TRAIN, HAM_DIR_TRAIN)
+    s = get_spam_prob()
     test(s, SPAM_DIR_TEST, HAM_DIR_TEST)
+
+    s.save()
